@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TFR System — Tool Fabrication Request</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f7fc;min-height:100vh;color:#1a1a1a}
+:root{--b50:#e6f4fb;--b100:#b8ddf4;--b200:#7bbfe9;--acc:#1a7abf;--b600:#1a5f8a;--b800:#0d3a57;--dark:#0f172a;--border:#e2e8f0}
+
+/* ── SETUP SCREEN ── */
+.setup-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#e8f4fb;padding:1rem}
+.setup-box{background:white;border-radius:20px;border:1px solid var(--b100);padding:2.5rem 2rem;width:min(520px,100%);box-shadow:0 8px 40px rgba(26,95,138,.12)}
+.setup-logo{text-align:center;margin-bottom:2rem}
+.setup-logo-icon{width:54px;height:54px;background:var(--b600);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px}
+.setup-logo h1{font-size:22px;font-weight:800;color:var(--b800)}
+.setup-logo p{font-size:13px;color:#888;margin-top:3px}
+.setup-step{display:flex;gap:12px;margin-bottom:16px;padding:14px;background:var(--b50);border-radius:10px;border:1px solid var(--b100)}
+.step-num{width:28px;height:28px;background:var(--acc);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;margin-top:1px}
+.step-text{font-size:13px;color:#333;line-height:1.7}
+.step-text strong{color:var(--b600)}
+.step-text code{background:#e8f4fb;padding:1px 6px;border-radius:4px;font-size:12px;color:var(--b800)}
+.sf{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.sf label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px}
+.sf input{padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;outline:none;transition:border-color .15s;font-family:monospace}
+.sf input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(26,122,191,.1)}
+.sf small{font-size:11px;color:#999}
+.connect-btn{width:100%;padding:13px;background:var(--acc);color:white;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s;margin-top:4px}
+.connect-btn:hover{background:var(--b600)}
+.connect-btn:disabled{background:#aac8e0;cursor:not-allowed}
+.conn-err{background:#fff0f0;color:#a32d2d;border:1px solid #f09595;border-radius:8px;padding:10px 13px;font-size:13px;margin-bottom:12px;display:none}
+.conn-ok{background:#f0faf0;color:#1a5c1a;border:1px solid #52b952;border-radius:8px;padding:10px 13px;font-size:13px;margin-bottom:12px;display:none}
+.divider{border:none;border-top:1px solid var(--b100);margin:1.25rem 0}
+
+/* ── LOGIN ── */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#e8f4fb;padding:1rem}
+.login-box{background:white;border-radius:20px;border:1px solid var(--b100);padding:2.5rem 2rem;width:min(420px,100%);box-shadow:0 8px 40px rgba(26,95,138,.12)}
+.login-logo{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:1.75rem}
+.login-logo-icon{width:46px;height:46px;background:var(--b600);border-radius:12px;display:flex;align-items:center;justify-content:center}
+.login-logo h1{font-size:21px;font-weight:800;color:var(--b800)}
+.login-logo p{font-size:12px;color:#999;margin-top:1px}
+.role-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem}
+.role-card{border:2px solid #e0e0e0;border-radius:12px;padding:16px 10px;text-align:center;cursor:pointer;transition:all .18s}
+.role-card:hover{border-color:var(--b200);background:var(--b50)}
+.role-card.sel{border-color:var(--acc);background:var(--b50)}
+.rc-icon{font-size:26px;margin-bottom:7px}
+.rc-name{font-size:14px;font-weight:600;color:#333}
+.rc-desc{font-size:11px;color:#999;margin-top:3px}
+.lf{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.lf label{font-size:12px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.4px}
+.lf input{padding:10px 12px;border:1px solid #ccc;border-radius:9px;font-size:14px;outline:none}
+.lf input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(26,122,191,.1)}
+.login-btn{width:100%;padding:12px;background:var(--acc);color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+.login-btn:hover{background:var(--b600)}
+.lerr{background:#fff0f0;color:#a32d2d;border:1px solid #f09595;border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:10px;display:none}
+.login-hint{font-size:11px;color:#bbb;text-align:center;margin-top:14px;line-height:1.8}
+.change-db{font-size:11px;color:var(--acc);text-align:center;margin-top:10px;cursor:pointer;text-decoration:underline}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--b600);color:white;padding:13px 24px;display:flex;align-items:center;gap:13px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.topbar-icon{width:36px;height:36px;background:white;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.topbar h1{font-size:17px;font-weight:600}
+.topbar p{font-size:11px;opacity:.75;margin-top:1px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.user-pill{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);border-radius:20px;padding:5px 13px;font-size:12px;display:flex;align-items:center;gap:7px}
+.role-badge{background:rgba(255,255,255,.25);border-radius:10px;padding:1px 8px;font-size:10px;font-weight:700;letter-spacing:.3px}
+.logout-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:white;border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer}
+.logout-btn:hover{background:rgba(255,255,255,.28)}
+.live-dot{width:8px;height:8px;background:#4ade80;border-radius:50%;display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── LAYOUT ── */
+.container{max-width:1020px;margin:0 auto;padding:1.5rem 1rem}
+.tabs{display:flex;border-bottom:2px solid var(--b100);margin-bottom:1.5rem}
+.tab{padding:10px 22px;border:none;background:none;font-size:14px;font-weight:500;color:#666;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:4px 4px 0 0;transition:all .15s}
+.tab.on{color:var(--acc);border-bottom-color:var(--acc);background:var(--b50)}
+.tab:hover:not(.on){background:var(--b50);color:var(--b600)}
+.panel{display:none}.panel.on{display:block}
+
+/* ── TOAST ── */
+.toast{display:none;border-radius:9px;padding:12px 16px;font-size:13px;font-weight:500;position:fixed;top:74px;right:20px;z-index:9999;min-width:280px;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.toast.show{display:block}
+.tok{background:#f0faf0;color:#1a5c1a;border:1px solid #52b952}
+.ter{background:#fff0f0;color:#a32d2d;border:1px solid #e24b4a}
+.tin{background:var(--b50);color:var(--b800);border:1px solid var(--b200)}
+
+/* ── FORM ── */
+.card{background:white;border:1px solid #d0e8f5;border-radius:14px;padding:1.75rem;box-shadow:0 1px 4px rgba(26,95,138,.06)}
+.card-title{font-size:13px;font-weight:600;color:var(--b600);margin-bottom:1.25rem;padding-bottom:10px;border-bottom:1px solid var(--b100);text-transform:uppercase;letter-spacing:.5px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}}
+.fi{display:flex;flex-direction:column;gap:5px}
+.fi label{font-size:12px;font-weight:600;color:var(--b800);text-transform:uppercase;letter-spacing:.4px}
+.fi input,.fi select{padding:9px 11px;border:1px solid var(--b200);border-radius:9px;font-size:14px;background:white;color:#222;outline:none;transition:border-color .15s}
+.fi input:focus,.fi select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(26,122,191,.12)}
+.pri-row{display:flex;gap:8px}
+.pb{flex:1;padding:9px 4px;border:1px solid #ccc;background:white;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;text-align:center;color:#666;transition:all .15s}
+.pb[data-v=High].sel{background:#fff0f0;border-color:#e24b4a;color:#a32d2d}
+.pb[data-v=Medium].sel{background:#fffbf0;border-color:#ef9f27;color:#854f0b}
+.pb[data-v=Low].sel{background:#f0faf0;border-color:#52b952;color:#1a5c1a}
+.sub-btn{margin-top:1.5rem;width:100%;padding:13px;background:var(--acc);color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.sub-btn:hover{background:var(--b600)}
+.sub-btn:disabled{background:#aac8e0;cursor:not-allowed}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
+@media(max-width:600px){.stats{grid-template-columns:1fr 1fr}}
+.sc{background:white;border:1px solid #d0e8f5;border-radius:11px;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.sc .n{font-size:26px;font-weight:700}
+.sc .l{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.4px}
+
+/* ── TOOLBAR / TABLE ── */
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px}
+.toolbar h2{font-size:15px;font-weight:600;color:#222}
+.t-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.srch-wrap{position:relative;display:flex;align-items:center}
+.srch-wrap svg{position:absolute;left:10px;opacity:.45;pointer-events:none}
+.srch{padding:7px 12px 7px 33px;border:1px solid var(--b200);border-radius:9px;font-size:13px;outline:none;background:white;color:#222;width:230px;transition:all .2s}
+.srch:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(26,122,191,.1);width:270px}
+.srch::placeholder{color:#bbb}
+.frow{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chip{padding:6px 13px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid #ccc;background:white;cursor:pointer;color:#555;transition:all .15s}
+.chip.on{background:var(--b50);border-color:var(--acc);color:var(--acc)}
+.tbtn{padding:7px 13px;background:white;border:1px solid var(--b200);border-radius:9px;font-size:12px;font-weight:500;color:var(--b600);cursor:pointer}
+.tbtn:hover{background:var(--b50)}
+.res-count{font-size:12px;color:#888;margin-bottom:8px;min-height:18px}
+.tbl-wrap{background:white;border:1px solid #d0e8f5;border-radius:12px;overflow:auto;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:800px}
+thead tr{background:var(--b50)}
+th{padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--b600);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--b200);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid #eef5fa;color:#222;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f7fbff}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.b-pending{background:#fff3e0;color:#854f0b}
+.b-planned{background:#e3f2fd;color:#1a5f8a}
+.b-completed{background:#e8f5e9;color:#1a5c1a}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.dh{background:#e24b4a}.dm{background:#ef9f27}.dl{background:#52b952}
+.upd-btn{padding:5px 12px;background:var(--b50);border:1px solid var(--b200);border-radius:7px;font-size:12px;color:var(--acc);cursor:pointer;font-weight:500}
+.upd-btn:hover{background:var(--b100)}
+.stag{font-size:11px;padding:2px 8px;border-radius:10px;background:#f5f5f5;color:#888;border:1px solid #ddd}
+.stag.live{background:#e8f5e9;color:#1a5c1a;border-color:#52b952}
+.empty{text-align:center;padding:3rem;color:#bbb;font-size:14px}
+mark{background:#fff3cd;border-radius:2px;padding:0 1px}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(10,40,60,.45);z-index:1000;align-items:center;justify-content:center;padding:1rem}
+.overlay.open{display:flex}
+.modal{background:white;border-radius:14px;border:1px solid var(--b200);width:min(580px,100%);max-height:90vh;overflow-y:auto;padding:1.75rem;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.mhd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding-bottom:10px;border-bottom:1px solid var(--b100)}
+.mhd h3{font-size:16px;font-weight:600;color:var(--b800)}
+.cxbtn{background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;padding:2px 8px;border-radius:5px;line-height:1}
+.cxbtn:hover{background:#f5f5f5;color:#333}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;background:var(--b50);border-radius:10px;padding:14px}
+.ii label{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#888;display:block;margin-bottom:3px}
+.ii span{font-size:13px;font-weight:600;color:#222}
+.dvd{border:none;border-top:1px solid var(--b100);margin:1rem 0}
+.ps-title{font-size:12px;font-weight:600;color:var(--b600);margin-bottom:12px;text-transform:uppercase;letter-spacing:.4px}
+.plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pf{display:flex;flex-direction:column;gap:5px}
+.pf label{font-size:12px;color:#555;font-weight:500}
+.pf input,.pf select{padding:8px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px;background:white;color:#222;outline:none}
+.pf input:focus,.pf select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(26,122,191,.1)}
+.mfooter{margin-top:1.5rem;display:flex;gap:10px;justify-content:flex-end}
+.btn-can{padding:9px 20px;background:white;border:1px solid #ccc;border-radius:9px;font-size:14px;cursor:pointer;color:#555}
+.btn-can:hover{background:#f5f5f5}
+.btn-sav{padding:9px 24px;background:var(--acc);color:white;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-sav:hover{background:var(--b600)}
+.btn-sav:disabled{background:#aac8e0;cursor:not-allowed}
+
+/* ── SPINNER ── */
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── LOADING OVERLAY ── */
+.loading{position:fixed;inset:0;background:rgba(255,255,255,.8);z-index:2000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.loading-spin{width:36px;height:36px;border:3px solid var(--b100);border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite}
+.loading p{font-size:14px;color:var(--b600);font-weight:500}
+
+/* ── MY TFRS (Requester card view) ── */
+.my-card{background:white;border:1px solid #d0e8f5;border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.my-id{font-weight:700;color:var(--acc);font-size:14px;min-width:80px}
+.my-info{flex:1}
+.my-name{font-weight:600;font-size:14px;color:#222}
+.my-meta{font-size:12px;color:#888;margin-top:3px}
+.my-right{text-align:right;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading" id="loading">
+  <div class="loading-spin"></div>
+  <p>Connecting to database...</p>
+</div>
+
+<!-- SETUP SCREEN -->
+<div id="setupScreen" style="display:none">
+  <div class="setup-screen">
+    <div class="setup-box">
+      <div class="setup-logo">
+        <div class="setup-logo-icon">
+          <svg width="26" height="26" viewBox="0 0 22 22" fill="none">
+            <rect x="2" y="5" width="13" height="15" rx="2.5" fill="#b8ddf4"/>
+            <rect x="7" y="2" width="13" height="15" rx="2.5" fill="white"/>
+            <path d="M11 8h6M11 11.5h4.5M11 15h6" stroke="#1a7abf" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h1>TFR System Setup</h1>
+        <p>Connect your Supabase database — one time only</p>
+      </div>
+
+      <div class="setup-step">
+        <div class="step-num">1</div>
+        <div class="step-text">Go to <strong><a href="https://supabase.com" target="_blank" style="color:var(--acc)">supabase.com</a></strong> → Sign up free → Create a new project → Choose any region close to India.</div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">2</div>
+        <div class="step-text">In your project, go to <strong>SQL Editor</strong> → click <strong>New Query</strong> → paste and run the SQL below to create the TFR table.<br><br>
+        <details><summary style="cursor:pointer;color:var(--acc);font-weight:600;font-size:12px">Show SQL to run ▾</summary>
+        <pre style="background:#f0f7fc;border:1px solid var(--b100);border-radius:8px;padding:12px;font-size:11px;overflow:auto;margin-top:8px;line-height:1.6">CREATE TABLE tfr_requests (
+  id TEXT PRIMARY KEY,
+  tool_no TEXT,
+  tool_name TEXT,
+  requester TEXT,
+  department TEXT,
+  quantity INTEGER,
+  revision TEXT,
+  required_date TEXT,
+  priority TEXT,
+  status TEXT DEFAULT 'Pending',
+  planned_date TEXT,
+  commit_date TEXT,
+  completion_date TEXT,
+  execution_type TEXT,
+  remarks TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE tfr_requests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all" ON tfr_requests FOR ALL USING (true) WITH CHECK (true);</pre>
+        </details>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">3</div>
+        <div class="step-text">Go to <strong>Project Settings → API</strong>. Copy your <strong>Project URL</strong> and <strong>anon public key</strong> and paste below.</div>
+      </div>
+
+      <hr class="divider">
+      <div id="connErr" class="conn-err"></div>
+      <div id="connOk" class="conn-ok"></div>
+      <div class="sf">
+        <label>Supabase Project URL</label>
+        <input id="sbUrl" placeholder="https://xxxxxxxxxxxx.supabase.co">
+        <small>Found in Project Settings → API → Project URL</small>
+      </div>
+      <div class="sf">
+        <label>Supabase Anon Key</label>
+        <input id="sbKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+        <small>Found in Project Settings → API → Project API Keys → anon public</small>
+      </div>
+      <button class="connect-btn" id="connectBtn" onclick="connectSupabase()">Connect & Test Database</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" style="display:none">
+  <div class="login-wrap">
+    <div class="login-box">
+      <div class="login-logo">
+        <div class="login-logo-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <rect x="2" y="5" width="13" height="15" rx="2.5" fill="#b8ddf4"/>
+            <rect x="7" y="2" width="13" height="15" rx="2.5" fill="white"/>
+            <path d="M11 8h6M11 11.5h4.5M11 15h6" stroke="#1a7abf" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div><h1>TFR System</h1><p>Tool Fabrication Request</p></div>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:#888;text-align:center;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Select Your Role</div>
+      <div class="role-cards">
+        <div class="role-card" id="rc-requester" onclick="selRole('Requester')">
+          <div class="rc-icon">📋</div>
+          <div class="rc-name">Requester</div>
+          <div class="rc-desc">Submit &amp; track TFRs</div>
+        </div>
+        <div class="role-card" id="rc-planner" onclick="selRole('Planner')">
+          <div class="rc-icon">📊</div>
+          <div class="rc-name">Planner</div>
+          <div class="rc-desc">Review &amp; plan TFRs</div>
+        </div>
+      </div>
+      <div id="lerr" class="lerr">Invalid username or password.</div>
+      <div class="lf"><label>Username</label><input id="lUser" placeholder="Enter your username" autocomplete="off"></div>
+      <div class="lf"><label>Password</label><input id="lPass" type="password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="login-btn" onclick="doLogin()">Sign In</button>
+      <div class="login-hint">Requester: <b>requester</b> / <b>tfr123</b><br>Planner: <b>planner</b> / <b>plan123</b><br><span style="font-size:10px">Add more users by editing the USERS object in the code</span></div>
+      <div class="change-db" onclick="showSetup()">⚙ Change database connection</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" style="display:none">
+  <div class="topbar">
+    <div class="topbar-icon">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+        <rect x="2" y="5" width="13" height="15" rx="2.5" fill="#b8ddf4"/>
+        <rect x="7" y="2" width="13" height="15" rx="2.5" fill="#1a7abf"/>
+        <path d="M11 8h6M11 11.5h4.5M11 15h6" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Tool Fabrication Request System</h1>
+      <p id="topSub">Live — Supabase</p>
+    </div>
+    <div class="topbar-right">
+      <span class="live-dot" title="Live sync active"></span>
+      <div class="user-pill"><span id="topUser">—</span><span class="role-badge" id="topRole">—</span></div>
+      <button class="logout-btn" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="toast" class="toast"></div>
+    <div class="tabs" id="tabBar"></div>
+
+    <!-- Raise TFR -->
+    <div id="pnl-req" class="panel">
+      <div class="card">
+        <div class="card-title">New Tool Fabrication Request</div>
+        <div class="form-grid">
+          <div class="fi"><label>Tool Number *</label><input id="fTn" placeholder="e.g. T-2024-001"></div>
+          <div class="fi"><label>Tool Name *</label><input id="fNm" placeholder="e.g. Injection Die A"></div>
+          <div class="fi"><label>Requester Name *</label><input id="fRq" placeholder="Your full name"></div>
+          <div class="fi"><label>Department *</label>
+            <select id="fDp"><option value="">Select department</option><option>Molding</option><option>Stamping</option><option>Assembly</option></select>
+          </div>
+          <div class="fi"><label>Required Quantity *</label><input type="number" id="fQt" placeholder="Qty" min="1"></div>
+          <div class="fi"><label>Revision Number *</label><input id="fRv" placeholder="e.g. Rev-01"></div>
+          <div class="fi"><label>Required Date *</label><input type="date" id="fRd"></div>
+          <div class="fi"><label>Priority *</label>
+            <div class="pri-row">
+              <button class="pb" data-v="High" onclick="setPri(this)">🔴 High</button>
+              <button class="pb" data-v="Medium" onclick="setPri(this)">🟡 Medium</button>
+              <button class="pb" data-v="Low" onclick="setPri(this)">🟢 Low</button>
+            </div>
+          </div>
+        </div>
+        <button class="sub-btn" id="subBtn" onclick="submitTFR()">
+          <span id="subLabel">Submit TFR to Tool Room</span>
+          <div class="spin" id="subSpin"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- My TFRs (Requester) -->
+    <div id="pnl-mine" class="panel">
+      <div class="stats" id="myStats"></div>
+      <div class="toolbar">
+        <h2>My Submitted TFRs</h2>
+        <div class="t-right">
+          <div class="srch-wrap">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#666" stroke-width="1.2"/><path d="M10 10l2.5 2.5" stroke="#666" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <input class="srch" id="mineSearch" placeholder="Search..." oninput="renderMine()">
+          </div>
+          <button class="tbtn" onclick="loadData().then(renderMine)">↻ Refresh</button>
+          <button class="tbtn" onclick="doExport()">↓ Export CSV</button>
+        </div>
+      </div>
+      <div id="mineList"></div>
+    </div>
+
+    <!-- Planner Dashboard -->
+    <div id="pnl-plan" class="panel">
+      <div class="stats" id="planStats"></div>
+      <div class="toolbar">
+        <h2>All TFR Requests</h2>
+        <div class="t-right">
+          <div class="srch-wrap">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#666" stroke-width="1.2"/><path d="M10 10l2.5 2.5" stroke="#666" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <input class="srch" id="planSearch" placeholder="Search TFR No., tool, requester..." oninput="renderTable()">
+          </div>
+          <div class="frow">
+            <button class="chip on" data-f="All" onclick="setFil(this)">All</button>
+            <button class="chip" data-f="Pending" onclick="setFil(this)">Pending</button>
+            <button class="chip" data-f="Planned" onclick="setFil(this)">Planned</button>
+            <button class="chip" data-f="Completed" onclick="setFil(this)">Completed</button>
+          </div>
+          <button class="tbtn" onclick="loadData().then(renderAll)">↻ Refresh</button>
+          <button class="tbtn" onclick="doExport()">↓ CSV</button>
+        </div>
+      </div>
+      <div id="resCount" class="res-count"></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>TFR No.</th><th>Tool Name</th><th>Dept</th><th>Requester</th>
+            <th>Priority</th><th>Req. Date</th><th>Status</th><th>Execution</th><th>Sync</th><th>Action</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="empty" id="emptyMsg" style="display:none">No requests found.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UPDATE MODAL -->
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="mhd">
+      <h3 id="mTitle">Update TFR Plan</h3>
+      <button class="cxbtn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="info-grid" id="mInfo"></div>
+    <hr class="dvd">
+    <div class="ps-title">Planner Updates</div>
+    <div class="plan-grid">
+      <div class="pf"><label>Planned On Date</label><input type="date" id="mPd"></div>
+      <div class="pf"><label>Commitment Date</label><input type="date" id="mCd"></div>
+      <div class="pf"><label>Completion Date</label><input type="date" id="mXd"></div>
+      <div class="pf"><label>Status</label>
+        <select id="mSt"><option value="Pending">Pending</option><option value="Planned">Planned</option><option value="Completed">Completed</option></select>
+      </div>
+      <div class="pf"><label>Execution Type</label>
+        <select id="mEx"><option value="">Select...</option><option value="Inhouse">Inhouse</option><option value="Outsource">Outsource</option></select>
+      </div>
+      <div class="pf"><label>Remarks</label><input id="mRm" placeholder="Optional"></div>
+    </div>
+    <div class="mfooter">
+      <button class="btn-can" onclick="closeModal()">Cancel</button>
+      <button class="btn-sav" id="savBtn" onclick="savePlan()">
+        <span id="savLabel">Save to Database</span>
+        <div class="spin" id="savSpin"></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CREDENTIALS — add your team here ──
+const USERS={
+  requester:{pass:'tfr123',role:'Requester',display:'Requester'},
+  planner:{pass:'plan123',role:'Planner',display:'Planner'},
+  rahul:{pass:'rahul1',role:'Requester',display:'Rahul Sharma'},
+  priya:{pass:'priya1',role:'Requester',display:'Priya Menon'},
+  suresh:{pass:'suresh1',role:'Planner',display:'Suresh Kumar'},
+  admin:{pass:'admin1',role:'Planner',display:'Admin'},
+};
+
+const CFG_KEY='tfr_sb_cfg',SESS='tfr_sess_v3';
+let sb=null,tfrs=[],fil='All',eid=null,pri='',me=null;
+let realtimeSub=null;
+
+// ── INIT ──
+window.addEventListener('load',async()=>{
+  const cfg=loadCfg();
+  if(!cfg){hide('loading');show('setupScreen');return}
+  const ok=await initSupabase(cfg.url,cfg.key);
+  hide('loading');
+  if(ok){
+    const sess=loadSess();
+    if(sess){me=sess;bootApp()}
+    else show('loginScreen');
+  } else {
+    show('setupScreen');
+    document.getElementById('connErr').style.display='block';
+    document.getElementById('connErr').textContent='Previous connection failed. Please re-enter your Supabase credentials.';
+  }
+});
+
+function loadCfg(){try{const c=localStorage.getItem(CFG_KEY);return c?JSON.parse(c):null}catch(e){return null}}
+function saveCfg(url,key){localStorage.setItem(CFG_KEY,JSON.stringify({url,key}))}
+function loadSess(){try{const s=sessionStorage.getItem(SESS);return s?JSON.parse(s):null}catch(e){return null}}
+function show(id){document.getElementById(id).style.display=''}
+function hide(id){document.getElementById(id).style.display='none'}
+
+async function initSupabase(url,key){
+  try{
+    sb=supabase.createClient(url,key);
+    const{error}=await sb.from('tfr_requests').select('id').limit(1);
+    if(error)throw error;
+    return true;
+  }catch(e){sb=null;return false}
+}
+
+async function connectSupabase(){
+  const url=document.getElementById('sbUrl').value.trim();
+  const key=document.getElementById('sbKey').value.trim();
+  const btn=document.getElementById('connectBtn');
+  const err=document.getElementById('connErr');
+  const ok2=document.getElementById('connOk');
+  err.style.display='none';ok2.style.display='none';
+  if(!url.startsWith('https://')||!key.startsWith('eyJ')){
+    err.style.display='block';err.textContent='Please enter a valid Supabase URL and anon key.';return;
+  }
+  btn.disabled=true;btn.textContent='Testing connection...';
+  const ok=await initSupabase(url,key);
+  btn.disabled=false;btn.textContent='Connect & Test Database';
+  if(ok){
+    saveCfg(url,key);
+    ok2.style.display='block';ok2.textContent='✅ Connected successfully! Loading app...';
+    setTimeout(()=>{hide('setupScreen');show('loginScreen')},1200);
+  } else {
+    err.style.display='block';
+    err.textContent='Connection failed. Check your URL and key, and make sure you ran the SQL to create the table.';
+  }
+}
+function showSetup(){hide('loginScreen');hide('mainApp');show('setupScreen')}
+
+// ── AUTH ──
+function selRole(r){document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('sel'));document.getElementById('rc-'+r.toLowerCase()).classList.add('sel')}
+function doLogin(){
+  const u=document.getElementById('lUser').value.trim().toLowerCase();
+  const p=document.getElementById('lPass').value;
+  const err=document.getElementById('lerr');
+  if(!USERS[u]||USERS[u].pass!==p){err.style.display='block';return}
+  err.style.display='none';
+  me={username:u,...USERS[u]};
+  sessionStorage.setItem(SESS,JSON.stringify(me));
+  bootApp();
+}
+function logout(){
+  if(realtimeSub)sb.removeChannel(realtimeSub);
+  sessionStorage.removeItem(SESS);me=null;
+  hide('mainApp');show('loginScreen');
+  document.getElementById('lUser').value='';document.getElementById('lPass').value='';
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('sel'));
+}
+
+// ── BOOT ──
+async function bootApp(){
+  hide('loginScreen');show('mainApp');
+  document.getElementById('topUser').textContent=me.display;
+  document.getElementById('topRole').textContent=me.role.toUpperCase();
+  document.getElementById('topSub').textContent=me.role==='Planner'?'Planner View — Live Supabase Sync':'Requester View — Live Supabase Sync';
+  buildTabs();
+  await loadData();
+  subscribeRealtime();
+  if(me.role==='Planner')renderAll();
+  else renderMine();
+}
+
+async function loadData(){
+  const{data,error}=await sb.from('tfr_requests').select('*').order('created_at',{ascending:false});
+  if(error){toast('Load error: '+error.message,'ter');return}
+  tfrs=data||[];
+}
+
+function subscribeRealtime(){
+  if(realtimeSub)sb.removeChannel(realtimeSub);
+  realtimeSub=sb.channel('tfr-live')
+    .on('postgres_changes',{event:'*',schema:'public',table:'tfr_requests'},async()=>{
+      await loadData();
+      if(me.role==='Planner')renderAll();
+      else renderMine();
+      toast('Live update received','tin');
+    })
+    .subscribe();
+}
+
+// ── TABS ──
+function buildTabs(){
+  const bar=document.getElementById('tabBar');
+  if(me.role==='Requester'){
+    bar.innerHTML=`<button class="tab on" onclick="sw('req')">Raise TFR</button><button class="tab" onclick="sw('mine')">My TFRs</button>`;
+    sw('req');
+  } else {
+    bar.innerHTML=`<button class="tab on" onclick="sw('plan')">Planner Dashboard</button>`;
+    sw('plan');
+  }
+}
+function sw(t){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  const btn=document.querySelector(`.tab[onclick="sw('${t}')"]`);
+  if(btn)btn.classList.add('on');
+  const pnl=document.getElementById('pnl-'+t);
+  if(pnl)pnl.classList.add('on');
+  if(t==='plan')renderAll();
+  if(t==='mine')renderMine();
+}
+
+// ── HELPERS ──
+function setPri(btn){document.querySelectorAll('.pb').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');pri=btn.dataset.v}
+function genId(){const ns=tfrs.map(r=>parseInt((r.id||'').split('-')[1])||0);return 'TFR-'+String((ns.length?Math.max(...ns):0)+1).padStart(3,'0')}
+function toast(msg,cls='tok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+cls;setTimeout(()=>t.classList.remove('show'),4000)}
+function hl(txt,q){if(!q)return String(txt||'');return String(txt||'').replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>')}
+function matches(r,q){if(!q)return true;const l=q.toLowerCase();return[r.id,r.tool_name,r.tool_no,r.department,r.requester,r.priority,r.status,r.revision,r.required_date,r.execution_type,r.remarks].some(v=>String(v||'').toLowerCase().includes(l))}
+
+// ── SUBMIT TFR ──
+async function submitTFR(){
+  const v={tool_no:document.getElementById('fTn').value.trim(),tool_name:document.getElementById('fNm').value.trim(),
+    requester:document.getElementById('fRq').value.trim(),department:document.getElementById('fDp').value,
+    quantity:parseInt(document.getElementById('fQt').value)||0,revision:document.getElementById('fRv').value.trim(),
+    required_date:document.getElementById('fRd').value};
+  if(Object.values(v).some(x=>!x)||!pri){toast('Please fill all required fields and select priority','ter');return}
+  const btn=document.getElementById('subBtn'),lbl=document.getElementById('subLabel'),sp=document.getElementById('subSpin');
+  btn.disabled=true;lbl.textContent='Submitting...';sp.style.display='block';
+  const rec={id:genId(),...v,priority:pri,status:'Pending',planned_date:null,commit_date:null,completion_date:null,execution_type:null,remarks:null};
+  const{error}=await sb.from('tfr_requests').insert([rec]);
+  btn.disabled=false;lbl.textContent='Submit TFR to Tool Room';sp.style.display='none';
+  if(error){toast('Submit failed: '+error.message,'ter');return}
+  toast(rec.id+' submitted and saved to database!','tok');
+  ['fTn','fNm','fRq','fQt','fRv','fRd'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fDp').value='';
+  document.querySelectorAll('.pb').forEach(b=>b.classList.remove('sel'));pri='';
+  await loadData();renderMine();
+}
+
+// ── FILTER / SEARCH ──
+function setFil(btn){document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));btn.classList.add('on');fil=btn.dataset.f;renderTable()}
+function bCls(s){return s==='Planned'?'b-planned':s==='Completed'?'b-completed':'b-pending'}
+function dCls(p){return p==='High'?'dh':p==='Medium'?'dm':'dl'}
+
+// ── REQUESTER: MY TFRs ──
+function renderMine(){
+  const q=(document.getElementById('mineSearch')||{}).value||'';
+  const list=tfrs.filter(r=>matches(r,q));
+  const t=tfrs.length,p=tfrs.filter(r=>r.status==='Pending').length,pl=tfrs.filter(r=>r.status==='Planned').length,d=tfrs.filter(r=>r.status==='Completed').length;
+  document.getElementById('myStats').innerHTML=`
+    <div class="sc"><div class="n">${t}</div><div class="l">Total</div></div>
+    <div class="sc"><div class="n" style="color:#854f0b">${p}</div><div class="l">Pending</div></div>
+    <div class="sc"><div class="n" style="color:var(--b600)">${pl}</div><div class="l">Planned</div></div>
+    <div class="sc"><div class="n" style="color:#1a5c1a">${d}</div><div class="l">Completed</div></div>`;
+  const el=document.getElementById('mineList');
+  if(!list.length){el.innerHTML='<div class="empty">No TFRs found.</div>';return}
+  el.innerHTML=list.map(r=>`
+    <div class="my-card">
+      <div class="my-id">${hl(r.id,q)}</div>
+      <div class="my-info">
+        <div class="my-name">${hl(r.tool_name,q)}</div>
+        <div class="my-meta">${hl(r.department,q)} &nbsp;·&nbsp; Qty: ${r.quantity} &nbsp;·&nbsp; ${hl(r.revision,q)} &nbsp;·&nbsp; Req: ${r.required_date}</div>
+        ${r.commit_date?`<div style="font-size:11px;color:var(--b600);margin-top:2px">Commit date: ${r.commit_date} ${r.execution_type?'· '+r.execution_type:''}</div>`:''}
+      </div>
+      <div class="my-right">
+        <span class="badge ${bCls(r.status)}">${r.status}</span>
+        <div style="font-size:10px;color:#bbb;margin-top:4px">${new Date(r.created_at).toLocaleDateString('en-IN')}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── PLANNER TABLE ──
+function renderTable(){
+  const q=(document.getElementById('planSearch')||{}).value||'';
+  let list=fil==='All'?tfrs:tfrs.filter(r=>r.status===fil);
+  list=list.filter(r=>matches(r,q));
+  const tb=document.getElementById('tbody'),em=document.getElementById('emptyMsg');
+  document.getElementById('resCount').textContent=q?`${list.length} result${list.length!==1?'s':''} for "${q}"`:'';
+  if(!list.length){tb.innerHTML='';em.style.display='block';return}
+  em.style.display='none';
+  tb.innerHTML=list.map(r=>`<tr>
+    <td style="font-weight:600;color:var(--acc)">${hl(r.id,q)}</td>
+    <td>${hl(r.tool_name,q)}</td>
+    <td>${hl(r.department,q)}</td>
+    <td>${hl(r.requester,q)}</td>
+    <td><span class="dot ${dCls(r.priority)}"></span>${r.priority}</td>
+    <td>${r.required_date}</td>
+    <td><span class="badge ${bCls(r.status)}">${r.status}</span></td>
+    <td style="font-size:12px;color:#555">${r.execution_type||'<span style="color:#ccc">—</span>'}</td>
+    <td><span class="stag live">Live</span></td>
+    <td><button class="upd-btn" onclick="openModal('${r.id}')">Update Plan</button></td>
+  </tr>`).join('');
+}
+function renderStats(){
+  const t=tfrs.length,p=tfrs.filter(r=>r.status==='Pending').length,pl=tfrs.filter(r=>r.status==='Planned').length,d=tfrs.filter(r=>r.status==='Completed').length;
+  document.getElementById('planStats').innerHTML=`
+    <div class="sc"><div class="n">${t}</div><div class="l">Total TFRs</div></div>
+    <div class="sc"><div class="n" style="color:#854f0b">${p}</div><div class="l">Pending</div></div>
+    <div class="sc"><div class="n" style="color:var(--b600)">${pl}</div><div class="l">Planned</div></div>
+    <div class="sc"><div class="n" style="color:#1a5c1a">${d}</div><div class="l">Completed</div></div>`;
+}
+function renderAll(){renderStats();renderTable()}
+
+// ── MODAL ──
+function openModal(id){
+  eid=id;const r=tfrs.find(x=>x.id===id);if(!r)return;
+  document.getElementById('mTitle').textContent='Update Plan — '+r.id;
+  document.getElementById('mInfo').innerHTML=`
+    <div class="ii"><label>Tool No.</label><span>${r.tool_no}</span></div>
+    <div class="ii"><label>Tool Name</label><span>${r.tool_name}</span></div>
+    <div class="ii"><label>Department</label><span>${r.department}</span></div>
+    <div class="ii"><label>Requester</label><span>${r.requester}</span></div>
+    <div class="ii"><label>Qty / Revision</label><span>${r.quantity} units / ${r.revision}</span></div>
+    <div class="ii"><label>Required Date</label><span>${r.required_date}</span></div>
+    <div class="ii"><label>Priority</label><span>${r.priority}</span></div>
+    <div class="ii"><label>Submitted</label><span>${new Date(r.created_at).toLocaleDateString('en-IN')}</span></div>`;
+  document.getElementById('mPd').value=r.planned_date||'';
+  document.getElementById('mCd').value=r.commit_date||'';
+  document.getElementById('mXd').value=r.completion_date||'';
+  document.getElementById('mSt').value=r.status;
+  document.getElementById('mEx').value=r.execution_type||'';
+  document.getElementById('mRm').value=r.remarks||'';
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(){document.getElementById('overlay').classList.remove('open');eid=null}
+function overlayClick(e){if(e.target===document.getElementById('overlay'))closeModal()}
+
+async function savePlan(){
+  if(!eid)return;
+  const btn=document.getElementById('savBtn'),lbl=document.getElementById('savLabel'),sp=document.getElementById('savSpin');
+  btn.disabled=true;lbl.textContent='Saving...';sp.style.display='block';
+  const updates={
+    planned_date:document.getElementById('mPd').value||null,
+    commit_date:document.getElementById('mCd').value||null,
+    completion_date:document.getElementById('mXd').value||null,
+    status:document.getElementById('mSt').value,
+    execution_type:document.getElementById('mEx').value||null,
+    remarks:document.getElementById('mRm').value||null,
+    updated_at:new Date().toISOString()
+  };
+  const{error}=await sb.from('tfr_requests').update(updates).eq('id',eid);
+  btn.disabled=false;lbl.textContent='Save to Database';sp.style.display='none';
+  if(error){toast('Save failed: '+error.message,'ter');return}
+  toast(eid+' updated in database!','tok');
+  closeModal();
+  await loadData();renderAll();
+}
+
+// ── EXPORT ──
+function doExport(){
+  const h=['ID','Tool No','Tool Name','Dept','Requester','Qty','Rev','Req Date','Priority','Status','Planned Date','Commit Date','Completion','Execution','Remarks'];
+  const csv=[h,...tfrs.map(r=>[r.id,r.tool_no,r.tool_name,r.department,r.requester,r.quantity,r.revision,r.required_date,r.priority,r.status,r.planned_date,r.commit_date,r.completion_date,r.execution_type,r.remarks])].map(r=>r.map(v=>'"'+(v||'')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='TFR_'+new Date().toISOString().split('T')[0]+'.csv';a.click();
+}
+</script>
+</body>
+</html>
