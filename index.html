@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -197,77 +196,7 @@ mark{background:#fff3cd;border-radius:2px;padding:0 1px}
   <p>Connecting to database...</p>
 </div>
 
-<!-- SETUP SCREEN -->
-<div id="setupScreen" style="display:none">
-  <div class="setup-screen">
-    <div class="setup-box">
-      <div class="setup-logo">
-        <div class="setup-logo-icon">
-          <svg width="26" height="26" viewBox="0 0 22 22" fill="none">
-            <rect x="2" y="5" width="13" height="15" rx="2.5" fill="#b8ddf4"/>
-            <rect x="7" y="2" width="13" height="15" rx="2.5" fill="white"/>
-            <path d="M11 8h6M11 11.5h4.5M11 15h6" stroke="#1a7abf" stroke-width="1.3" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <h1>TFR System Setup</h1>
-        <p>Connect your Supabase database — one time only</p>
-      </div>
 
-      <div class="setup-step">
-        <div class="step-num">1</div>
-        <div class="step-text">Go to <strong><a href="https://supabase.com" target="_blank" style="color:var(--acc)">supabase.com</a></strong> → Sign up free → Create a new project → Choose any region close to India.</div>
-      </div>
-      <div class="setup-step">
-        <div class="step-num">2</div>
-        <div class="step-text">In your project, go to <strong>SQL Editor</strong> → click <strong>New Query</strong> → paste and run the SQL below to create the TFR table.<br><br>
-        <details><summary style="cursor:pointer;color:var(--acc);font-weight:600;font-size:12px">Show SQL to run ▾</summary>
-        <pre style="background:#f0f7fc;border:1px solid var(--b100);border-radius:8px;padding:12px;font-size:11px;overflow:auto;margin-top:8px;line-height:1.6">CREATE TABLE tfr_requests (
-  id TEXT PRIMARY KEY,
-  tool_no TEXT,
-  tool_name TEXT,
-  requester TEXT,
-  department TEXT,
-  quantity INTEGER,
-  revision TEXT,
-  required_date TEXT,
-  priority TEXT,
-  status TEXT DEFAULT 'Pending',
-  planned_date TEXT,
-  commit_date TEXT,
-  completion_date TEXT,
-  execution_type TEXT,
-  remarks TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-ALTER TABLE tfr_requests ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow all" ON tfr_requests FOR ALL USING (true) WITH CHECK (true);</pre>
-        </details>
-        </div>
-      </div>
-      <div class="setup-step">
-        <div class="step-num">3</div>
-        <div class="step-text">Go to <strong>Project Settings → API</strong>. Copy your <strong>Project URL</strong> and <strong>anon public key</strong> and paste below.</div>
-      </div>
-
-      <hr class="divider">
-      <div id="connErr" class="conn-err"></div>
-      <div id="connOk" class="conn-ok"></div>
-      <div class="sf">
-        <label>Supabase Project URL</label>
-        <input id="sbUrl" placeholder="https://xxxxxxxxxxxx.supabase.co">
-        <small>Found in Project Settings → API → Project URL</small>
-      </div>
-      <div class="sf">
-        <label>Supabase Anon Key</label>
-        <input id="sbKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-        <small>Found in Project Settings → API → Project API Keys → anon public</small>
-      </div>
-      <button class="connect-btn" id="connectBtn" onclick="connectSupabase()">Connect & Test Database</button>
-    </div>
-  </div>
-</div>
 
 <!-- LOGIN SCREEN -->
 <div id="loginScreen" style="display:none">
@@ -301,7 +230,6 @@ CREATE POLICY "Allow all" ON tfr_requests FOR ALL USING (true) WITH CHECK (true)
       <div class="lf"><label>Password</label><input id="lPass" type="password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <button class="login-btn" onclick="doLogin()">Sign In</button>
       <div class="login-hint">Requester: <b>requester</b> / <b>tfr123</b><br>Planner: <b>planner</b> / <b>plan123</b><br><span style="font-size:10px">Add more users by editing the USERS object in the code</span></div>
-      <div class="change-db" onclick="showSetup()">⚙ Change database connection</div>
     </div>
   </div>
 </div>
@@ -455,29 +383,26 @@ const USERS={
   admin:{pass:'admin1',role:'Planner',display:'Admin'},
 };
 
+const SUPABASE_URL='https://rmjklnopdvjmmgtwyfkn.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtamtsbm9wZHZqbW1ndHd5ZmtuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDU2OTcsImV4cCI6MjA4OTIyMTY5N30.lSwN16L20PtSckL56qfkYizfkkSywlmOom6vYd74gnQ';
 const CFG_KEY='tfr_sb_cfg',SESS='tfr_sess_v3';
 let sb=null,tfrs=[],fil='All',eid=null,pri='',me=null;
 let realtimeSub=null;
 
 // ── INIT ──
 window.addEventListener('load',async()=>{
-  const cfg=loadCfg();
-  if(!cfg){hide('loading');show('setupScreen');return}
-  const ok=await initSupabase(cfg.url,cfg.key);
+  const ok=await initSupabase(SUPABASE_URL,SUPABASE_KEY);
   hide('loading');
   if(ok){
     const sess=loadSess();
     if(sess){me=sess;bootApp()}
     else show('loginScreen');
   } else {
-    show('setupScreen');
-    document.getElementById('connErr').style.display='block';
-    document.getElementById('connErr').textContent='Previous connection failed. Please re-enter your Supabase credentials.';
+    hide('loading');
+    document.body.innerHTML='<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;text-align:center;padding:2rem"><div><h2 style="color:#1a5f8a;margin-bottom:12px">Database Connection Failed</h2><p style="color:#666;font-size:14px">Could not connect to Supabase. Please check your internet connection and try again.</p><button onclick="location.reload()" style="margin-top:16px;padding:10px 24px;background:#1a7abf;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer">Retry</button></div></div>';
   }
 });
 
-function loadCfg(){try{const c=localStorage.getItem(CFG_KEY);return c?JSON.parse(c):null}catch(e){return null}}
-function saveCfg(url,key){localStorage.setItem(CFG_KEY,JSON.stringify({url,key}))}
 function loadSess(){try{const s=sessionStorage.getItem(SESS);return s?JSON.parse(s):null}catch(e){return null}}
 function show(id){document.getElementById(id).style.display=''}
 function hide(id){document.getElementById(id).style.display='none'}
@@ -490,30 +415,6 @@ async function initSupabase(url,key){
     return true;
   }catch(e){sb=null;return false}
 }
-
-async function connectSupabase(){
-  const url=document.getElementById('sbUrl').value.trim();
-  const key=document.getElementById('sbKey').value.trim();
-  const btn=document.getElementById('connectBtn');
-  const err=document.getElementById('connErr');
-  const ok2=document.getElementById('connOk');
-  err.style.display='none';ok2.style.display='none';
-  if(!url.startsWith('https://')||!key.startsWith('eyJ')){
-    err.style.display='block';err.textContent='Please enter a valid Supabase URL and anon key.';return;
-  }
-  btn.disabled=true;btn.textContent='Testing connection...';
-  const ok=await initSupabase(url,key);
-  btn.disabled=false;btn.textContent='Connect & Test Database';
-  if(ok){
-    saveCfg(url,key);
-    ok2.style.display='block';ok2.textContent='✅ Connected successfully! Loading app...';
-    setTimeout(()=>{hide('setupScreen');show('loginScreen')},1200);
-  } else {
-    err.style.display='block';
-    err.textContent='Connection failed. Check your URL and key, and make sure you ran the SQL to create the table.';
-  }
-}
-function showSetup(){hide('loginScreen');hide('mainApp');show('setupScreen')}
 
 // ── AUTH ──
 function selRole(r){document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('sel'));document.getElementById('rc-'+r.toLowerCase()).classList.add('sel')}
