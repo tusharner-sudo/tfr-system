@@ -233,7 +233,7 @@ mark{background:#fff3cd;border-radius:2px;padding:0 1px}
       <div class="lf"><label>Username</label><input id="lUser" placeholder="Enter your username" autocomplete="off"></div>
       <div class="lf"><label>Password</label><input id="lPass" type="password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <button class="login-btn" onclick="doLogin()">Sign In</button>
-      <div class="login-hint">Planners: AnishJ, BajrangP, AnthonyD, MaheshL, TusharN<br>Requesters: Anandu, Akhil, Arun, Anil, Bholenath, Tony, Ashwin, Pankaj<br><span style="font-size:10px;color:#ccc">Login = your name as shown above</span></div>
+      <div class="login-hint">Planners: anishj, bajrangp, anthonyd, maheshl, tusharN<br>Requesters: anandu, akhil, arun, anil, bholenath, tony, ashwin, pankaj<br><span style="font-size:10px;color:#ccc">Password = as provided (case sensitive)</span></div>
     </div>
   </div>
 </div>
@@ -502,21 +502,21 @@ const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 // ── USERS ──
 const USERS={
   // Planners
-  AnishJ:   {pass:'Planner1', role:'Planner',   display:'Anish Joseph',        email:'anish.joseph@te.com'},
-  BajrangP: {pass:'Planner2', role:'Planner',   display:'Bajrang Patil',       email:'bajrang.patil@te.com'},
-  AnthonyD: {pass:'Planner3', role:'Planner',   display:'Anthony Dsouza',      email:'anthony.dsouza@te.com'},
-  MaheshL:  {pass:'Planner4', role:'Planner',   display:'Mahesh Lad',          email:'maheshlad@te.com'},
+  anishj:   {pass:'Planner1', role:'Planner',   display:'Anish Joseph',        email:'anish.joseph@te.com'},
+  bajrangp: {pass:'Planner2', role:'Planner',   display:'Bajrang Patil',       email:'bajrang.patil@te.com'},
+  anthonyd: {pass:'Planner3', role:'Planner',   display:'Anthony Dsouza',      email:'anthony.dsouza@te.com'},
+  maheshl:  {pass:'Planner4', role:'Planner',   display:'Mahesh Lad',          email:'maheshlad@te.com'},
   // Manager (also has Planner access)
-  TusharN:  {pass:'Manager1', role:'Planner',   display:'Tushar Bhalachandra', email:'tushar.bhalachandra@te.com'},
+  tusharN:  {pass:'Manager1', role:'Planner',   display:'Tushar Bhalachandra', email:'tushar.bhalachandra@te.com'},
   // Requesters
-  Anandu:   {pass:'Anandu',   role:'Requester', display:'Anandhu P',           email:'anandhu.p@te.com'},
-  Akhil:    {pass:'Akhil',    role:'Requester', display:'Akhil S',             email:'akhil.s@te.com'},
-  Arun:     {pass:'Arun',     role:'Requester', display:'Arun VM',             email:'arun.vm@te.com'},
-  Anil:     {pass:'Anil',     role:'Requester', display:'Anil',                email:'anil@te.com'},
-  Bholenath:{pass:'Bholenath',role:'Requester', display:'Bholenath Gaikwad',   email:'bholenath.gaikwad@te.com'},
-  Tony:     {pass:'Tony',     role:'Requester', display:'Tony M Sebastian',    email:'tony.msebastian@te.com'},
-  Ashwin:   {pass:'Ashwin',   role:'Requester', display:'Aswin Raju',          email:'aswin.raju@te.com'},
-  Pankaj:   {pass:'Pankaj',   role:'Requester', display:'Pankaj Warti',        email:'pankaj_warti@te.com'},
+  anandu:   {pass:'Anandu',   role:'Requester', display:'Anandhu P',           email:'anandhu.p@te.com'},
+  akhil:    {pass:'Akhil',    role:'Requester', display:'Akhil S',             email:'akhil.s@te.com'},
+  arun:     {pass:'Arun',     role:'Requester', display:'Arun VM',             email:'arun.vm@te.com'},
+  anil:     {pass:'Anil',     role:'Requester', display:'Anil',                email:'anil@te.com'},
+  bholenath:{pass:'Bholenath',role:'Requester', display:'Bholenath Gaikwad',   email:'bholenath.gaikwad@te.com'},
+  tony:     {pass:'Tony',     role:'Requester', display:'Tony M Sebastian',    email:'tony.msebastian@te.com'},
+  ashwin:   {pass:'Ashwin',   role:'Requester', display:'Aswin Raju',          email:'aswin.raju@te.com'},
+  pankaj:   {pass:'Pankaj',   role:'Requester', display:'Pankaj Warti',        email:'pankaj_warti@te.com'},
 };
 
 const SESS='tfr_sess_v4',EJS_KEY='tfr_ejs',EMAIL_KEY='tfr_emails';
